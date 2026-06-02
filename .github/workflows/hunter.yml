@@ -1,0 +1,43 @@
+name: OCI Hunter PHP
+
+on:
+  schedule:
+    # Executa automaticamente de 15 em 15 minutos, 24/7
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Permite-te clicar num botão para testar à mão sempre que quiseres
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Copiar o Código
+        uses: actions/checkout@v4
+
+      - name: Configurar o PHP no Servidor do GitHub
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, mbstring
+
+      - name: Instalar Dependências do Script
+        run: composer install
+
+      - name: Criar Ficheiro da Chave Privada
+        run: |
+          echo "${{ secrets.OCI_PRIVATE_KEY_TEXT }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Correr Caçador Oracle
+        env:
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
+          OCI_TENANCY_ID: ${{ secrets.OCI_TENANCY_ID }}
+          OCI_KEY_FINGERPRINT: ${{ secrets.OCI_KEY_FINGERPRINT }}
+          OCI_PRIVATE_KEY_FILENAME: ./private_key.pem
+          OCI_AVAILABILITY_DOMAIN: ${{ secrets.OCI_AVAILABILITY_DOMAIN }}
+          OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
+          OCI_IMAGE_ID: ${{ secrets.OCI_IMAGE_ID }}
+          OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+          OCI_MAX_INSTANCES: 1
+        run: php index.php

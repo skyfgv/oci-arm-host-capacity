@@ -1,43 +1,45 @@
-name: OCI Hunter PHP
+name: Oracle Cloud Instance Hunter
 
 on:
+  push:
+    branches: [ main, master ]
   schedule:
-    # Executa automaticamente de 15 em 15 minutos, 24/7
+    # Corre automaticamente de 15 em 15 minutos
     - cron: '*/15 * * * *'
-  workflow_dispatch: # Permite-te clicar num botão para testar à mão sempre que quiseres
+  workflow_dispatch:
+    # Permite-te carregar num botão para correr o robô manualmente sempre que quiseres
 
 jobs:
-  run-script:
+  hunt:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Copiar o Código
-        uses: actions/checkout@v4
+    - name: Checkout Repository
+      uses: actions/checkout@v3
 
-      - name: Configurar o PHP no Servidor do GitHub
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: curl, mbstring
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: curl, mbstring, openssl
 
-      - name: Instalar Dependências do Script
-        run: composer install
+    - name: Install Dependencies
+      run: composer install
 
-      - name: Criar Ficheiro da Chave Privada
-        run: |
-          echo "${{ secrets.OCI_PRIVATE_KEY_TEXT }}" > private_key.pem
-          chmod 600 private_key.pem
-
-      - name: Correr Caçador Oracle
-        env:
-          OCI_REGION: ${{ secrets.OCI_REGION }}
-          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
-          OCI_TENANCY_ID: ${{ secrets.OCI_TENANCY_ID }}
-          OCI_KEY_FINGERPRINT: ${{ secrets.OCI_KEY_FINGERPRINT }}
-          OCI_PRIVATE_KEY_FILENAME: ./private_key.pem
-          OCI_AVAILABILITY_DOMAIN: ${{ secrets.OCI_AVAILABILITY_DOMAIN }}
-          OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
-          OCI_IMAGE_ID: ${{ secrets.OCI_IMAGE_ID }}
-          OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-          OCI_MAX_INSTANCES: 1
-        run: php index.php
+    - name: Run Instance Hunter
+      env:
+        OCI_REGION: ${{ secrets.OCI_REGION }}
+        OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
+        OCI_TENANCY_ID: ${{ secrets.OCI_TENANCY_ID }}
+        OCI_KEY_FINGERPRINT: ${{ secrets.OCI_KEY_FINGERPRINT }}
+        OCI_PRIVATE_KEY_TEXT: ${{ secrets.OCI_PRIVATE_KEY_TEXT }}
+        OCI_AVAILABILITY_DOMAIN: ${{ secrets.OCI_AVAILABILITY_DOMAIN }}
+        OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
+        OCI_IMAGE_ID: ${{ secrets.OCI_IMAGE_ID }}
+        OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+        OCI_SHAPE: 'VM.Standard.A1.Flex'
+        OCI_OCPUS: 4
+        OCI_MEMORY_IN_GBS: 24
+        OCI_BOOT_VOLUME_SIZE_IN_GBS: 50
+        OCI_MAX_INSTANCES: 1
+      run: php index.php

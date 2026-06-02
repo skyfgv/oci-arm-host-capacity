@@ -26,13 +26,18 @@ jobs:
     - name: Install Dependencies
       run: composer install
 
+    - name: Create Private Key File
+      run: |
+        echo "${{ secrets.OCI_PRIVATE_KEY_TEXT }}" > oracle_private_key.pem
+        chmod 600 oracle_private_key.pem
+
     - name: Run Instance Hunter
       env:
         OCI_REGION: ${{ secrets.OCI_REGION }}
         OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
         OCI_TENANCY_ID: ${{ secrets.OCI_TENANCY_ID }}
         OCI_KEY_FINGERPRINT: ${{ secrets.OCI_KEY_FINGERPRINT }}
-        OCI_PRIVATE_KEY_TEXT: ${{ secrets.OCI_PRIVATE_KEY_TEXT }}
+        OCI_PRIVATE_KEY_FILENAME: 'oracle_private_key.pem'
         OCI_AVAILABILITY_DOMAIN: ${{ secrets.OCI_AVAILABILITY_DOMAIN }}
         OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
         OCI_IMAGE_ID: ${{ secrets.OCI_IMAGE_ID }}

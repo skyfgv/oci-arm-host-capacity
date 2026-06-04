@@ -4,8 +4,7 @@ on:
   push:
     branches: [ main, master ]
   schedule:
-    # Corre automaticamente de 15 em 15 minutos
-    - cron: '*/15 * * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
     # Permite-te carregar num botão para correr o robô manualmente sempre que quiseres
 
